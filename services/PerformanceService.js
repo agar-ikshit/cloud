@@ -7,8 +7,19 @@ export const analyzePerformance = async (req, res) => {
     if (!url) return res.status(400).json({ error: "URL is required" });
 
     try {
-        // Launch Chrome
-        const chrome = await launch({ chromeFlags: ["--headless"] });
+        // Use Puppeteer to get the correct Chrome path
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
+        });
+
+        const chromePath = puppeteer.executablePath(); // Get the correct Chrome path
+
+        // Launch Chrome with the correct path
+        const chrome = await launch({
+            chromePath,
+            chromeFlags: ["--headless", "--disable-gpu", "--no-sandbox"]
+        });
 
         // Run Lighthouse audit
         const result = await lighthouse(url, {
@@ -45,6 +56,7 @@ export const analyzePerformance = async (req, res) => {
         };
 
         // Close Chrome
+        await browser.close();
         await chrome.kill();
 
         res.json({ coreWebVitals, opportunities, network, scores: categories });
