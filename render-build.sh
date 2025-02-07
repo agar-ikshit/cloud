@@ -3,3 +3,7 @@ set -o errexit
 
 apt-get update
 apt-get install -y chromium
+
+
+
+npm run build
