@@ -26,18 +26,18 @@ export const analyzeWebsite = async (req, res) => {
         results.sslInfo = await sslChecker(domain).catch(() => "SSL info not available");
 
         // Puppeteer Analysis
-        const browser = await puppeteer.launch({ headless: "new",
-            executablePath: process.env.CHROME_PATH || puppeteer.executablePath(),
-            args: ["--no-sandbox", "--disable-setuid-sandbox"], });
-        const page = await browser.newPage();
-        await page.goto(url, { waitUntil: "domcontentloaded" });
+        // const browser = await puppeteer.launch({ headless: "new",
+        //     executablePath: process.env.CHROME_PATH || puppeteer.executablePath(),
+        //     args: ["--no-sandbox", "--disable-setuid-sandbox"], });
+        // const page = await browser.newPage();
+        // await page.goto(url, { waitUntil: "domcontentloaded" });
 
-        // Extract Page Information
-        results.pageInfo = await page.evaluate(() => ({
-            title: document.title,
-            description: document.querySelector("meta[name='description']")?.content || "No description found",
-            metaKeywords: document.querySelector("meta[name='keywords']")?.content || "No keywords found",
-        }));
+        // // Extract Page Information
+        // results.pageInfo = await page.evaluate(() => ({
+        //     title: document.title,
+        //     description: document.querySelector("meta[name='description']")?.content || "No description found",
+        //     metaKeywords: document.querySelector("meta[name='keywords']")?.content || "No keywords found",
+        // }));
 
         // Security Headers Detection
         const response = await fetch(url, { method: "HEAD" });

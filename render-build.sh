@@ -1,9 +1,12 @@
-#!/usr/bin/env bash
-set -o errexit
+# #!/usr/bin/env bash
+# set -o errexit
 
-sudo apt update
-sudo apt-get install -y chromium
+# apt-get update
+# apt-get install -y chromium
 
+# # Install project dependencies (example for Node.js)
+# npm install
 
-
-npm run build
+# # Add any other build steps your application requires
+# # For example, running a build script:
+# npm run build
