@@ -6,17 +6,18 @@ export const analyzePerformance = async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "URL is required" });
 
+    let browser, chrome;
     try {
-        // Use Puppeteer to get the correct Chrome path
-        const browser = await puppeteer.launch({
+        // Launch Puppeteer
+        browser = await puppeteer.launch({
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"]
         });
 
-        const chromePath = puppeteer.executablePath(); // Get the correct Chrome path
+        const chromePath = puppeteer.executablePath(); // Get Puppeteer's Chrome path
 
-        // Launch Chrome with the correct path
-        const chrome = await launch({
+        // Launch Chrome for Lighthouse
+        chrome = await launch({
             chromePath,
             chromeFlags: ["--headless", "--disable-gpu", "--no-sandbox"]
         });
@@ -32,12 +33,12 @@ export const analyzePerformance = async (req, res) => {
 
         // Extract Core Web Vitals
         const coreWebVitals = {
-            FCP: audits["first-contentful-paint"].displayValue,
-            LCP: audits["largest-contentful-paint"].displayValue,
-            CLS: audits["cumulative-layout-shift"].displayValue,
+            FCP: audits["first-contentful-paint"]?.displayValue || "N/A",
+            LCP: audits["largest-contentful-paint"]?.displayValue || "N/A",
+            CLS: audits["cumulative-layout-shift"]?.displayValue || "N/A",
             INP: audits["interaction-to-next-paint"]?.displayValue || "N/A",
-            SpeedIndex: audits["speed-index"].displayValue,
-            TBT: audits["total-blocking-time"].displayValue,
+            SpeedIndex: audits["speed-index"]?.displayValue || "N/A",
+            TBT: audits["total-blocking-time"]?.displayValue || "N/A",
         };
 
         // Extract Opportunities (Areas of Improvement)
@@ -50,18 +51,17 @@ export const analyzePerformance = async (req, res) => {
 
         // Extract Network Performance
         const network = {
-            totalRequests: audits["network-requests"].details.items.length,
-            totalPageSize: audits["network-requests"].details.items.reduce((acc, item) => acc + (item.transferSize || 0), 0),
-            mainThreadTime: audits["main-thread-tasks"].displayValue,
+            totalRequests: audits["network-requests"]?.details?.items.length || 0,
+            totalPageSize: audits["network-requests"]?.details?.items.reduce((acc, item) => acc + (item.transferSize || 0), 0),
+            mainThreadTime: audits["main-thread-tasks"]?.displayValue || "N/A",
         };
-
-        // Close Chrome
-        await browser.close();
-        await chrome.kill();
 
         res.json({ coreWebVitals, opportunities, network, scores: categories });
     } catch (error) {
         console.error("❌ Performance analysis failed:", error);
         res.status(500).json({ error: "Failed to analyze performance" });
+    } finally {
+        if (browser) await browser.close();
+        if (chrome) await chrome.kill();
     }
 };
